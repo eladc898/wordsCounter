@@ -40,7 +40,7 @@ const wordService = {
             }
         }
         catch (e) {
-            loggerService.write(fName, e);
+            loggerService.write(fName, 'count words failed');
             throw e;
         }
     },
@@ -80,9 +80,10 @@ async function parseTextAndSaveToDb(text) {
     try {
         loggerService.write(fName, `about to count words`);
         const wordsCounter = utilityService.countWords(text);
-        if (wordsCounter) {
-            await saveRecords(wordsCounter);
+        if (!wordsCounter) {
+            return await Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidText));
         }
+        return await saveRecords(wordsCounter);
     }
     catch (e) {
         throw e;
@@ -101,13 +102,16 @@ async function handleStreamData(stream) {
                 if (typeof chunk !== 'string') {
                     chunk = chunk.toString();
                 }
+                // Resolve after the first chunk to avoid losing connection with the client(request timeout)
+                if (chunkCounter === 1) {
+                    resolve();
+                }
                 await parseTextAndSaveToDb(chunk);
             }
         }).on('error', err => {
             loggerService.write(fName, err);
             reject(err)
         }).on('end', function() {
-            resolve();
             loggerService.write(fName, `Finish handling ${chunkCounter} chunks`);
         });
     });

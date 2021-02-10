@@ -28,6 +28,7 @@ const ERRORS = {
 	invalidType: 'Request type is invalid. set type to one of the following: text/file/url',
 	invalidFile: 'Invalid file type. provide a file with ".txt" extension',
 	invalidUrl: 'Invalid url',
+	invalidText: 'payload is not of type text',
 	invalidCountParam: 'type or payload fields are missing',
 	invalidWordParam: 'Invalid request parameter. add word as query parameter to get statistics of word'
 };

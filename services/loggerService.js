@@ -21,7 +21,7 @@ const loggerService = {
             return utilityService.createServerError(fName, "Log file is missing");
         }
 
-        logFile.write(`${caller}: ${data}\n`);
+        logFile.write(`${Date.now()} - ${caller}: ${data}\n`);
     }
 }
 

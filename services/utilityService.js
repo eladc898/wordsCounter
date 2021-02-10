@@ -4,7 +4,10 @@ const dic = require('../dictionary');
 const utilityService = {
 
     countWords: (text) => {
-        if (!text || !text.length) return;
+        const fName = 'countWords';
+        if (!text || !text.length || typeof text !== 'string') {
+            return;
+        }
         let wordsCounter = {};
         const words = text.replace(dic.CONSTANTS.wordsRegex, ' ').split(' ');
 

@@ -9,7 +9,6 @@ const dbService = {
 
     mongoFindOneObj: function(model, query, select, populate, options) {
         const fName = "mongoFindOneObj";
-        loggerService.write(fName, `Model: ${model.modelName}`);
 
         return new Promise(((resolve, reject) => {
             if (!model || !query) {
@@ -47,7 +46,6 @@ const dbService = {
 
     mongoFindOneAndUpdate: function(model, query, data, options) {
         const fName = "mongoFindOneAndUpdate";
-        loggerService.write(fName, `Model: ${model.modelName}`);
 
         return new Promise((resolve, reject) => {
             if (!model || !query || !data) {
@@ -59,7 +57,9 @@ const dbService = {
                     if (err) {
                         return reject(utilityService.createServerError(fName, {text: "failed update data", model: model.modelName, query: query, err: err}));
                     }
-                    loggerService.write(fName, `${newData._id} updated successfully`);
+                    if (newData) {
+                        loggerService.write(fName, `${newData.toObject()._id.toString()} updated successfully`);
+                    }
                     resolve(newData);
                 });
             }
@@ -68,7 +68,9 @@ const dbService = {
                     if (err) {
                         return reject(utilityService.createServerError(fName, {text: "failed update data", model: model.modelName, query: query, err: err}));
                     }
-                    loggerService.write(fName, `${newData._id} updated successfully`);
+                    if (newData) {
+                        loggerService.write(fName, `${newData.toObject()._id.toString()} updated successfully`);
+                    }
                     resolve(newData);
                 });
             }
