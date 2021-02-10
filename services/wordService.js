@@ -1,36 +1,38 @@
 "use strict";
 
 const utilityService = require('./utilityService'),
+    loggerService = require('./loggerService'),
     dbService = require('./dbService'),
     dataService = require('./dataService'),
     fs = require('fs'),
-    q = require('q'),
+    util = require('util'),
     dic = require('../dictionary'),
     _ = require('lodash'),
-    wordModel = require('../models/wordModel'),
-    logFile = fs.createWriteStream(__dirname + '/../application.log', {flags : 'w'});
+    wordModel = require('../models/wordModel');
 
 const wordService = {
 
     async countWords(requestData) {
         const fName = 'countWords';
 
-        if (!requestData || !requestData.type || !requestData.text) {
+        if (!requestData || !requestData.type || !requestData.payload) {
             return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidCountParam));
         }
 
         try {
+            loggerService.write(fName, `request type: ${requestData.type}`);
+
             switch (requestData.type) {
                 case dic.CONSTANTS.dataType.text:
-                    await handleText(requestData.text);
+                    await parseTextAndSaveToDb(requestData.payload);
                     break;
 
                 case dic.CONSTANTS.dataType.file:
-                    await handleFilePath(requestData.text);
+                    await handleFilePath(requestData.payload);
                     break;
 
                 case dic.CONSTANTS.dataType.url:
-                    await handleUrl(requestData.text);
+                    await handleUrl(requestData.payload);
                     break;
 
                 default:
@@ -38,6 +40,7 @@ const wordService = {
             }
         }
         catch (e) {
+            loggerService.write(fName, e);
             throw e;
         }
     },
@@ -48,19 +51,34 @@ const wordService = {
             return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidWordParam));
         }
         try {
+            loggerService.write(fName, `Get statistics for word: ${word}`);
+
             const query = {name: word.toLowerCase()};
             const select = 'count';
-            const wordObj = await dbService.mongoFindOneObj(wordModel, query, select, null, null);
+            const options = {name: dic.CONSTANTS.word};
+            const wordObj = await dbService.mongoFindOneObj(wordModel, query, select, null, options);
+
+            loggerService.write(fName, `Word count: ${wordObj.count}`);
             return wordObj.count;
         }
         catch (e) {
-            throw e;
+            // Object not found in the db
+            if (e.message === util.format(dic.ERRORS.objNotFound, dic.CONSTANTS.word)) {
+                loggerService.write(fName, `Word count: 0`);
+                return 0;
+            }
+            else {
+                loggerService.write(fName, e);
+                throw e;
+            }
         }
     }
 }
 
-async function handleText(text) {
+async function parseTextAndSaveToDb(text) {
+    const fName = 'parseTextAndSaveToDb';
     try {
+        loggerService.write(fName, `about to count words`);
         const wordsCounter = utilityService.countWords(text);
         if (wordsCounter) {
             await saveRecords(wordsCounter);
@@ -72,18 +90,25 @@ async function handleText(text) {
 }
 
 async function handleStreamData(stream) {
+    const fName = 'handleStreamData';
+
     let chunkCounter = 0;
     return new Promise((resolve, reject) => {
         stream.on('data', async (chunk) => {
             chunkCounter++;
-            console.log(`Handling chunk: ${chunkCounter}`);
+            loggerService.write(fName, `Handling chunk: ${chunkCounter}`);
             if (chunk.length) {
-                await handleText(chunk);
+                if (typeof chunk !== 'string') {
+                    chunk = chunk.toString();
+                }
+                await parseTextAndSaveToDb(chunk);
             }
         }).on('error', err => {
+            loggerService.write(fName, err);
             reject(err)
         }).on('end', function() {
             resolve();
+            loggerService.write(fName, `Finish handling ${chunkCounter} chunks`);
         });
     });
 }
@@ -94,30 +119,9 @@ async function handleUrl(url) {
         return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidUrl));
     }
 
-    // const request = await dataService.getData(url);
-    // console.log(request.data);
-
-    // return await handleStreamData(request);
-
-    /*var http = require('http');
-
-    var options = {
-        host: url
-    }
-    var request = http.get(url, function (res) {
-        var data = '';
-        res.on('data', function (chunk) {
-            data += chunk;
-        });
-        res.on('end', function () {
-            console.log(data);
-
-        });
-    });
-    request.on('error', function (e) {
-        console.log(e.message);
-    });
-    request.end();*/
+    loggerService.write(fName, `get read stream for url: ${url}`);
+    const stream = await dataService.getHttpData(url);
+    return await handleStreamData(stream);
 }
 
 async function handleFilePath(path) {
@@ -126,17 +130,22 @@ async function handleFilePath(path) {
         return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidFile));
     }
 
+    loggerService.write(fName, `get read stream for file path: ${path}`);
     const readStream = await fs.createReadStream(path,{ highWaterMark: 128 * dic.CONSTANTS.oneKb, encoding: 'utf8' });
     return await handleStreamData(readStream);
 }
 
 async function saveRecords(wordsCounter) {
+    const fName = 'saveRecords';
+
     try {
+        loggerService.write(fName, `save words counter to DB - start`);
         const results = await saveRecordsExecute(wordsCounter);
         let isFailure = _.find(results, {state: 'rejected'});
         if (isFailure) {
             return new Error(isFailure.reason);
         }
+        loggerService.write(fName, `save words counter to DB - end`);
     }
     catch (err) {
         await Promise.reject(err);
@@ -144,6 +153,7 @@ async function saveRecords(wordsCounter) {
 }
 
 async function saveRecordsExecute(wordsCounter) {
+    const fName = 'saveRecordsExecute';
     const options = {upsert: true};
 
     let promises = [];
@@ -153,6 +163,7 @@ async function saveRecordsExecute(wordsCounter) {
             dbService.mongoFindOneAndUpdate(wordModel, {name: word}, {$inc: { count: count}}, options).then(() => {
                 resolve();
             }).catch(err => {
+                loggerService.write(fName, 'saving chunk to DB - failed');
                 reject(err);
             });
         }));
@@ -162,6 +173,7 @@ async function saveRecordsExecute(wordsCounter) {
         return await Promise.allSettled(promises);
     }
     catch (err) {
+        loggerService.write(fName, 'saving to DB - failed');
         await Promise.reject(err);
     }
 }

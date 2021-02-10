@@ -6,7 +6,7 @@ const mongoose     = require('mongoose'),
 
 const words = new Schema({
     created: { type: Date, default: Date.now },
-    name: String,
+    name: {type: String, index: {unique: true, dropDups: true}},
     count: {type: Number, default: 0}
 
 }, { autoIndex: false });

@@ -27,8 +27,7 @@ const utilityService = {
 
         let userError = {
             error: dic.CONSTANTS.errorTypes.user,
-            message: err || "",
-            caller: fName
+            message: err || ""
         };
 
         if (options) {
@@ -45,8 +44,7 @@ const utilityService = {
 
         let serverError = {
             error: dic.CONSTANTS.errorTypes.server,
-            message: err || "",
-            caller: fName
+            message: err || ""
         };
 
         if (options) {

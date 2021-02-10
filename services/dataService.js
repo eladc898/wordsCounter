@@ -1,26 +1,20 @@
 "use strict";
 
-const axios = require('axios'),
-	http = require('http');
+const http = require('http');
 
 const dataService = {
 
-	getHttpData(url, headers, params) {
-		return http.get(url);
-	},
+	async getHttpData(url) {
+		return new Promise((resolve, reject) => {
+			const request = http.get(url, res => {
+				if (res) {
+					resolve(res);
+				}
+			});
 
-	getData(url, headers, params) {
-		return axios.get(url, {
-			headers: headers || {},
-			params: params || {},
-			responseType: 'json'
-		});
-	},
-
-	postData(url, body, headers) {
-		return axios.post(url, body, {
-			headers: headers || {},
-			responseType: 'json'
+			request.on('error', (e) => {
+				reject(e);
+			});
 		});
 	}
 };

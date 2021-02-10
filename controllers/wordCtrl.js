@@ -9,7 +9,7 @@ const wordCtrl = {
             wordService.countWords(req.body).then(() => {
                 res.status(201).json('(ok)');
             }, err => {
-                res.status(err.error).json(err);
+                res.status(err && err.error || dic.CONSTANTS.errorTypes.user).json(err);
             });
         }
         catch (ex) {

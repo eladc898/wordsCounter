@@ -1,5 +1,6 @@
 "use strict";
 const util = require('util'),
+    loggerService = require('./loggerService'),
     utilityService = require('./utilityService'),
     dic = require('../dictionary');
 
@@ -8,6 +9,7 @@ const dbService = {
 
     mongoFindOneObj: function(model, query, select, populate, options) {
         const fName = "mongoFindOneObj";
+        loggerService.write(fName, `Model: ${model.modelName}`);
 
         return new Promise(((resolve, reject) => {
             if (!model || !query) {
@@ -23,6 +25,7 @@ const dbService = {
                         return reject(utilityService.createUserError(fName, util.format(dic.ERRORS.objNotFound, options && options.name || 'object')));
                     }
 
+                    loggerService.write(fName, `${data._id} was found in DB`);
                     resolve(data);
                 });
             }
@@ -35,6 +38,7 @@ const dbService = {
                         return reject(utilityService.createUserError(fName, util.format(dic.ERRORS.objNotFound, options && options.name || 'object')));
                     }
 
+                    loggerService.write(fName, `${data._id} was found in DB`);
                     resolve(data);
                 });
             }
@@ -43,6 +47,7 @@ const dbService = {
 
     mongoFindOneAndUpdate: function(model, query, data, options) {
         const fName = "mongoFindOneAndUpdate";
+        loggerService.write(fName, `Model: ${model.modelName}`);
 
         return new Promise((resolve, reject) => {
             if (!model || !query || !data) {
@@ -51,9 +56,10 @@ const dbService = {
 
             if (options) {
                 model.findOneAndUpdate(query, data, options, (err, newData) => {
-                    if (err || true) {
+                    if (err) {
                         return reject(utilityService.createServerError(fName, {text: "failed update data", model: model.modelName, query: query, err: err}));
                     }
+                    loggerService.write(fName, `${newData._id} updated successfully`);
                     resolve(newData);
                 });
             }
@@ -62,6 +68,7 @@ const dbService = {
                     if (err) {
                         return reject(utilityService.createServerError(fName, {text: "failed update data", model: model.modelName, query: query, err: err}));
                     }
+                    loggerService.write(fName, `${newData._id} updated successfully`);
                     resolve(newData);
                 });
             }
