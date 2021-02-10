@@ -1,8 +1,61 @@
 "use strict";
+const dic = require('../dictionary');
 
 const utilityService = {
-    dateDiffInDays: function(date1, date2) {
-        return Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
+
+    countWords: (text) => {
+        if (!text || !text.length) return;
+        let wordsCounter = {};
+        const words = text.replace(dic.CONSTANTS.wordsRegex, ' ').split(' ');
+
+        words.forEach(word => {
+            if (!word) return;
+            word = word.toLowerCase();
+            if (wordsCounter[word]) {
+                wordsCounter[word] += 1;
+            }
+            else {
+                wordsCounter[word] = 1;
+            }
+        });
+
+        return wordsCounter;
+    },
+
+    createUserError: function (caller, err, options) {
+        const fName = caller || "createUserError";
+
+        let userError = {
+            error: dic.CONSTANTS.errorTypes.user,
+            message: err || "",
+            caller: fName
+        };
+
+        if (options) {
+            Object.keys(options).forEach(key => {
+                userError[key] = options[key];
+            });
+        }
+
+        return userError;
+    },
+
+    createServerError: function (caller, err, options) {
+        const fName = caller || "createServerError";
+
+        let serverError = {
+            error: dic.CONSTANTS.errorTypes.server,
+            message: err || "",
+            caller: fName
+        };
+
+        if (options) {
+            Object.keys(options).forEach(key => {
+                serverError[key] = options[key];
+            });
+        }
+
+        return serverError;
     }
 }
 
