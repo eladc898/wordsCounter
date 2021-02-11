@@ -44,36 +44,26 @@ const dbService = {
         }));
     },
 
-    mongoFindOneAndUpdate: function(model, query, data, options) {
-        const fName = "mongoFindOneAndUpdate";
+    mongoBulkUpdate(model, data) {
+        const fName = 'mongoBulkUpdate';
 
-        return new Promise((resolve, reject) => {
-            if (!model || !query || !data) {
-                return reject(utilityService.createServerError(fName, "model, query and data are required"));
-            }
+        if (!model || !data || !data.length) {
+            return Promise.reject(utilityService.createServerError(fName, "model and data are required"));
+        }
 
-            if (options) {
-                model.findOneAndUpdate(query, data, options, (err, newData) => {
-                    if (err) {
-                        return reject(utilityService.createServerError(fName, {text: "failed update data", model: model.modelName, query: query, err: err}));
-                    }
-                    if (newData) {
-                        loggerService.write(fName, `${newData.toObject()._id.toString()} updated successfully`);
-                    }
-                    resolve(newData);
-                });
+        const bulkOps = data.map(item => ({
+            updateOne: {
+                filter: item.query,
+                update: item.updateData,
+                upsert: true
             }
-            else {
-                model.findOneAndUpdate(query, data, (err, newData) => {
-                    if (err) {
-                        return reject(utilityService.createServerError(fName, {text: "failed update data", model: model.modelName, query: query, err: err}));
-                    }
-                    if (newData) {
-                        loggerService.write(fName, `${newData.toObject()._id.toString()} updated successfully`);
-                    }
-                    resolve(newData);
-                });
-            }
+        }));
+
+        model.bulkWrite(bulkOps).then(bulkWriteOpResult => {
+            loggerService.write(fName, `BULK update OK - ${bulkWriteOpResult.modifiedCount} documents updated successfully`);
+        })
+        .catch(err => {
+            loggerService.write(fName, `BULK update error`);
         });
     }
 };

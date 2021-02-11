@@ -1,7 +1,7 @@
 "use strict";
 
-const mongoose     = require('mongoose'),
-    Schema       = mongoose.Schema,
+const mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
     dic = require('../dictionary');
 
 const words = new Schema({
@@ -9,6 +9,6 @@ const words = new Schema({
     name: {type: String, index: {unique: true, dropDups: true}},
     count: {type: Number, default: 0}
 
-}, { autoIndex: false });
+});
 
 module.exports = mongoose.model(dic.CONSTANTS.mongoCollections.word, words);

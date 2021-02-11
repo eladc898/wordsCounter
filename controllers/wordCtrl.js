@@ -28,7 +28,7 @@ const wordCtrl = {
         catch (ex) {
             res.status(dic.CONSTANTS.errorTypes.server).json(ex && ex.stack);
         }
-    },
+    }
 };
 
 
