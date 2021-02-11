@@ -1,24 +1,21 @@
 {
-  "name": "node-server",
+  "name": "wordsCount",
   "version": "1.0.0",
-  "description": "",
+  "description": "Lemonade home exercise",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node node_modules/mocha/bin/mocha tests/**/*.js --reporter spec"
   },
-  "author": "",
+  "author": "Elad Cohen",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
-    "csv-parser": "^3.0.0",
     "express": "^4.17.0",
-    "fs-extra": "^9.1.0",
     "http": "0.0.1-security",
     "lodash": "^4.17.20",
-    "mongoose": "^5.11.14",
-    "q": "^1.5.1"
+    "mongoose": "^5.11.14"
   },
   "devDependencies": {
     "chai": "^4.1.2",
