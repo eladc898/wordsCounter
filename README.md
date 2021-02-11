@@ -24,7 +24,7 @@ npm run [command] where command is one of the following:
 - ```start``` starts the server
 - ```test``` runs all tests(note that the server should be up while running test)
 
-##API documentation
+## API documentation
 * **Count words** - a POST request to **/count** \
   Request body: a ```type``` ('text', 'file', 'url') and a ```payload``` containing the data to be processed (text, URL or file path) as request body.
   
