@@ -12,6 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api/v1/word', require('./routes/wordRoute'));
 
+//Init server
 connectDb().then(async () => {
     app.listen(port, () => {
         console.log(`Server running on port ${port}`);

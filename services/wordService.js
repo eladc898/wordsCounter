@@ -78,10 +78,12 @@ async function parseTextAndSaveToDb(text) {
     const fName = 'parseTextAndSaveToDb';
     try {
         loggerService.writeInfo(fName, `about to count words`);
+        // count text
         const wordsCounter = utilityService.countWords(text);
         if (!wordsCounter) {
             return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidText));
         }
+        //save the current bulk to DB
         return await saveRecords(wordsCounter);
     }
     catch (e) {
@@ -94,10 +96,12 @@ async function handleStreamData(stream) {
 
     let chunkCounter = 0;
     return new Promise((resolve, reject) => {
+        //get data from stream and parse in chunks
         stream.on('data', async (chunk) => {
             chunkCounter++;
             loggerService.writeInfo(fName, `Handling chunk: ${chunkCounter}`);
             if (chunk.length) {
+                //parse buffer to string
                 if (typeof chunk !== 'string') {
                     chunk = chunk.toString();
                 }
@@ -111,6 +115,7 @@ async function handleStreamData(stream) {
             loggerService.writeError(fName, err);
             reject(err);
         }).on('end', function() {
+            //finish save all chunks
             loggerService.writeInfo(fName, `Finish handling ${chunkCounter} chunks`);
         });
     });
@@ -171,6 +176,7 @@ async function saveRecordsExecute(wordsCounter) {
 
     let updateData = [];
 
+    // build query and update date for each word
     for (const [word, count] of Object.entries(wordsCounter)) {
         updateData.push({query: {name: word}, updateData: {$inc: { count: count}}});
     }
