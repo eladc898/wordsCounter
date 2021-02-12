@@ -19,7 +19,7 @@ const wordService = {
         }
 
         try {
-            loggerService.write(fName, `request type: ${requestData.type}`);
+            loggerService.writeInfo(fName, `request type: ${requestData.type}`);
 
             switch (requestData.type) {
                 case dic.CONSTANTS.dataType.text:
@@ -39,7 +39,7 @@ const wordService = {
             }
         }
         catch (e) {
-            loggerService.write(fName, 'count words failed');
+            loggerService.writeError(fName, 'count words failed');
             throw e;
         }
     },
@@ -50,24 +50,24 @@ const wordService = {
             return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidWordParam));
         }
         try {
-            loggerService.write(fName, `Get statistics for word: ${word}`);
+            loggerService.writeInfo(fName, `Get statistics for word: ${word}`);
 
             const query = {name: word.toLowerCase()};
             const select = 'count';
             const options = {name: dic.CONSTANTS.word};
             const wordObj = await dbService.mongoFindOneObj(wordModel, query, select, null, options);
 
-            loggerService.write(fName, `Word count: ${wordObj.count}`);
+            loggerService.writeInfo(fName, `Word count: ${wordObj.count}`);
             return wordObj.count;
         }
         catch (e) {
             // Object not found in the db
             if (e.message === util.format(dic.ERRORS.objNotFound, dic.CONSTANTS.word)) {
-                loggerService.write(fName, `Word count: 0`);
+                loggerService.writeInfo(fName, `Word count: 0`);
                 return 0;
             }
             else {
-                loggerService.write(fName, e);
+                loggerService.writeError(fName, e);
                 throw e;
             }
         }
@@ -77,7 +77,7 @@ const wordService = {
 async function parseTextAndSaveToDb(text) {
     const fName = 'parseTextAndSaveToDb';
     try {
-        loggerService.write(fName, `about to count words`);
+        loggerService.writeInfo(fName, `about to count words`);
         const wordsCounter = utilityService.countWords(text);
         if (!wordsCounter) {
             return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidText));
@@ -96,7 +96,7 @@ async function handleStreamData(stream) {
     return new Promise((resolve, reject) => {
         stream.on('data', async (chunk) => {
             chunkCounter++;
-            loggerService.write(fName, `Handling chunk: ${chunkCounter}`);
+            loggerService.writeInfo(fName, `Handling chunk: ${chunkCounter}`);
             if (chunk.length) {
                 if (typeof chunk !== 'string') {
                     chunk = chunk.toString();
@@ -108,10 +108,10 @@ async function handleStreamData(stream) {
                 await parseTextAndSaveToDb(chunk);
             }
         }).on('error', err => {
-            loggerService.write(fName, err);
+            loggerService.writeError(fName, err);
             reject(err);
         }).on('end', function() {
-            loggerService.write(fName, `Finish handling ${chunkCounter} chunks`);
+            loggerService.writeInfo(fName, `Finish handling ${chunkCounter} chunks`);
         });
     });
 }
@@ -122,7 +122,7 @@ async function handleUrl(url) {
         return Promise.reject(utilityService.createUserError(fName, dic.ERRORS.invalidUrl));
     }
 
-    loggerService.write(fName, `get read stream for url: ${url}`);
+    loggerService.writeInfo(fName, `get read stream for url: ${url}`);
     const stream = await dataService.getHttpData(url);
     if (!stream) {
         return Promise.reject(utilityService.createUserError(fName, util.format(dic.ERRORS.noDataUrl, url)));
@@ -138,7 +138,7 @@ async function handleFilePath(path) {
 
     try {
         fs.readFileSync(path);
-        loggerService.write(fName, `get read stream for file path: ${path}`);
+        loggerService.writeInfo(fName, `get read stream for file path: ${path}`);
         const stream = await fs.createReadStream(path,{ highWaterMark: 128 * dic.CONSTANTS.oneKb, encoding: 'utf8' });
         await handleStreamData(stream);
     }
@@ -155,9 +155,9 @@ async function saveRecords(wordsCounter) {
     const fName = 'saveRecords';
 
     try {
-        loggerService.write(fName, `save words counter to DB - start`);
+        loggerService.writeInfo(fName, `save words counter to DB - start`);
         await saveRecordsExecute(wordsCounter);
-        loggerService.write(fName, `save words counter to DB - end`);
+        loggerService.writeInfo(fName, `save words counter to DB - end`);
     }
     catch (err) {
         await Promise.reject(err);
@@ -177,7 +177,7 @@ async function saveRecordsExecute(wordsCounter) {
         await dbService.mongoBulkUpdate(wordModel, updateData);
     }
     catch (err) {
-        loggerService.write(fName, 'saving to DB - failed');
+        loggerService.writeError(fName, 'saving to DB - failed');
         await Promise.reject(err);
     }
 }

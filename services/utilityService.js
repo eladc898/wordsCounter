@@ -4,7 +4,6 @@ const dic = require('../dictionary');
 const utilityService = {
 
     countWords: (text) => {
-        const fName = 'countWords';
         if (!text || !text.length || typeof text !== 'string') {
             return;
         }

@@ -24,7 +24,7 @@ const dbService = {
                         return reject(utilityService.createUserError(fName, util.format(dic.ERRORS.objNotFound, options && options.name || 'object')));
                     }
 
-                    loggerService.write(fName, `${data._id} was found in DB`);
+                    loggerService.writeInfo(fName, `${data._id} was found in DB`);
                     resolve(data);
                 });
             }
@@ -37,7 +37,7 @@ const dbService = {
                         return reject(utilityService.createUserError(fName, util.format(dic.ERRORS.objNotFound, options && options.name || 'object')));
                     }
 
-                    loggerService.write(fName, `${data._id} was found in DB`);
+                    loggerService.writeInfo(fName, `${data._id} was found in DB`);
                     resolve(data);
                 });
             }
@@ -60,10 +60,10 @@ const dbService = {
         }));
 
         model.bulkWrite(bulkOps).then(bulkWriteOpResult => {
-            loggerService.write(fName, `BULK update OK - ${bulkWriteOpResult.modifiedCount} documents updated successfully`);
+            loggerService.writeInfo(fName, `BULK update OK - ${bulkWriteOpResult.modifiedCount} documents updated successfully`);
         })
         .catch(err => {
-            loggerService.write(fName, `BULK update error`);
+            loggerService.writeError(fName, `BULK update error`);
         });
     }
 };

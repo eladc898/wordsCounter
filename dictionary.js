@@ -4,6 +4,11 @@ const CONSTANTS = {
 		wordCache: "lemonade_words_cache"
 	},
 
+	logsType: {
+		info: 'INFO',
+		error: 'ERROR'
+	},
+
 	errorTypes: {
 		user: 400,
 		server: 500
