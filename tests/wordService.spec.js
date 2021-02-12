@@ -97,6 +97,42 @@ describe('Word Service Spec', () => {
                 done(err);
             });
         });
+
+        it('count words from safe URL - fail', function (done) {
+            let jsonData = {
+                type: dic.CONSTANTS.dataType.url,
+                payload: 'https://google.com'
+            };
+
+            request(appUrl)
+            .post('/api/v1/word/count')
+            .send(jsonData)
+            .set("content-type", "application/json")
+            .expect(res => {
+                expect(res.status, res.text).to.equal(400);
+            })
+            .end(function (err, res) {
+                done(err);
+            });
+        });
+
+        it('count words from URL', function (done) {
+            let jsonData = {
+                type: dic.CONSTANTS.dataType.url,
+                payload: 'http://google.com'
+            };
+
+            request(appUrl)
+            .post('/api/v1/word/count')
+            .send(jsonData)
+            .set("content-type", "application/json")
+            .expect(res => {
+                expect(res.status, res.text).to.equal(201);
+            })
+            .end(function (err, res) {
+                done(err);
+            });
+        });
     });
 
     describe('Word statistics', () => {

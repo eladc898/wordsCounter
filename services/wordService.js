@@ -123,11 +123,13 @@ async function handleUrl(url) {
     }
 
     loggerService.writeInfo(fName, `get read stream for url: ${url}`);
-    const stream = await dataService.getHttpData(url);
-    if (!stream) {
+    try {
+        const stream = await dataService.getHttpData(url);
+        return await handleStreamData(stream);
+    }
+    catch (e) {
         return Promise.reject(utilityService.createUserError(fName, util.format(dic.ERRORS.noDataUrl, url)));
     }
-    return await handleStreamData(stream);
 }
 
 async function handleFilePath(path) {
