@@ -9,7 +9,7 @@ These instructions will get you a copy of the server up and running on your loca
 ### Prerequisites
 1. git
 2. node
-3. local mongoDB
+3. local mongoDB(address: 'mongodb://127.0.0.1:27017')
 
 ## How to install and run
 
